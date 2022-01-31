@@ -1,2 +1,3 @@
-# iverkeer
-Django application containing traffic and mobility related analysis tools
+# Iverkeer
+
+Django application containing traffic and mobility related analysis tools.
