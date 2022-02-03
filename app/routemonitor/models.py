@@ -15,7 +15,6 @@ class Project(models.Model):
     created_date = models.DateTimeField(default=timezone.now, editable=False)
     description = models.TextField(blank = True)
 
-    #Dit zijn route-opties van Tomtom
     ROUTE_CHOICES = (
         ('fastest','fastest'),
         ('shortest', 'shortest'),

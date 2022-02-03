@@ -22,7 +22,7 @@ def route_update():
 
     routes = Project.objects.filter(start_date__lte = thistime)
     routes = routes.filter(end_date__gte = thistime).values('name', 'routepoints','routeType','traffic','travelMode','avoid')
-    #logger.warning(f'Dit komt uit het filter: {routes}')
+    logger.warning(f'Dit komt uit het filter: {routes}')
 
     logger.info('Starting updating routes')
     if not routes:
@@ -71,7 +71,7 @@ def route_update():
             trafficDelay = routeSummary['trafficDelayInSeconds'] / 60
 
             RouteData.objects.create(
-                route = Project.objects.get(name=name["name"]),
+                project = Project.objects.get(name=name["name"]),
                 travel_time = travelTime,
                 delay = trafficDelay,
                 route_length = lengthInMeters

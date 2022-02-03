@@ -1,6 +1,6 @@
 from celery import shared_task
 
-from routes.services import route_update
+from routemonitor.services import route_update
 
 
 @shared_task
