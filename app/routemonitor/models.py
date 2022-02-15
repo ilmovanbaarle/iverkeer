@@ -1,19 +1,36 @@
 from email.policy import default
 import uuid
 
-from django.db import models
+#from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.core.validators import MaxValueValidator,MinValueValidator
+from django.contrib.auth.models import User
+from django.contrib.gis.db import models
 
 class Project(models.Model):
-    name = models.CharField(max_length=50, unique= True, help_text='Use a clear and distinctive name for the route.')
-    project = models.CharField(max_length=50, help_text='Use the Iv project code, for example INFR191089.')
-    routepoints = models.CharField(max_length=200, help_text='For now use Google Maps coordinates. "51.89236,4.55976:51.94200,4.48367".')
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    name = models.CharField(max_length=50, unique= True, help_text='Gebruik een duidelijke naam. Bijvoorbeeld: Regelscenario wedstrijd Ajax')
+    iv_project = models.CharField(max_length=50, help_text='Gebruik de Iv projectcode, bijvoorbeeld INFR191089.')
     created_date = models.DateTimeField(default=timezone.now, editable=False)
-    description = models.TextField(blank = True)
+    created_by = models.ForeignKey(
+        User,
+        related_name="collections", 
+        blank=True, null=True,
+        on_delete=models.SET_NULL
+        )
+    description = models.TextField(blank = True, help_text='Eventuele aanvullende opmerkingen')
+
+    def __str__(self):     
+         return self.name 
+
+class Route(models.Model):
+    project = models.ForeignKey(
+        Project,
+        related_name="route", on_delete=models.CASCADE
+        )
+    name = models.CharField(max_length=50, unique= True, help_text='Gebruik een duidelijke naam. Bijvoorbeeld: Omleidingsroute via A58-A2 2022-W12')
+    points =  models.MultiPointField()
+    description = models.TextField(blank = True, help_text='Eventuele aanvullende opmerkingen')
 
     ROUTE_CHOICES = (
         ('fastest','fastest'),
@@ -33,15 +50,27 @@ class Project(models.Model):
         ('pedestrian', 'pedestrian')
     )
     travelMode = models.CharField(max_length=20, choices=TRAVEL_MODE_CHOICES, default ='car', help_text="The mode of travel for the requested route.")
-    traffic = models.BooleanField(default=True, help_text="Determines whether current traffic is used in route calculations.")
+    traffic = models.BooleanField(default=True, help_text="Determines whether current traffic is used in route calculations")
     avoid = models.CharField(max_length=50, default="unpavedRoads", editable=False)
 
     def __str__(self):     
          return self.name 
 
+class Schedule(models.Model):
+    route = models.ForeignKey(
+        Route,
+        related_name="schedule", on_delete=models.CASCADE
+        )
+    name = models.CharField(max_length=50, unique= False, help_text='Gebruik een duidelijke naam. Bijvoorbeeld: Zaterdag overdag')
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    def __str__(self):     
+         return self.name 
+
 class RouteData(models.Model):
-    project = models.ForeignKey(
-        Project,
+    route = models.ForeignKey(
+        Route,
         on_delete=models.CASCADE,
         related_name='data',
     )
@@ -60,9 +89,9 @@ class RouteData(models.Model):
         max_digits=9,
     )  
     class Meta:
-        verbose_name = 'Route historical data'
-        verbose_name_plural = 'Route historical data'
+        verbose_name = 'Route data'
+        verbose_name_plural = 'Route data'
         get_latest_by = 'timestamp'
 
     def __str__(self):
-        return f'[{self.project}] at {self.timestamp}'
+        return f'[{self.route}] om {self.timestamp}'

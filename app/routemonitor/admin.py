@@ -1,16 +1,19 @@
-from django.contrib import admin
-from routemonitor.models import Project, RouteData
-
+#from django.contrib import admin
+from django.contrib.gis import admin
+from routemonitor.models import Project, RouteData, Route, Schedule
 
 # Register your models here.
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project', 'start_date', 'end_date')
-    list_filter = ('project', 'start_date')
+    list_display = ('name', 'iv_project', 'created_date')
+    list_filter = ('iv_project', 'name')
     search_fields = ['name']
+
+@admin.register(Route)
+class RouteAdmin(admin.OSMGeoAdmin):
     fieldsets = (
         (None, {
-            'fields': ('name', 'project','routepoints', 'start_date', 'end_date', 'description')
+            'fields': ('name', 'project', 'points', 'description')
         }),
         ('Advanced options', {
             'classes': ('collapse',),
@@ -18,8 +21,5 @@ class ProjectAdmin(admin.ModelAdmin):
         }),
     )
 
-@admin.register(RouteData)
-class RouteHistoryAdmin(admin.ModelAdmin):
-    list_display = ('project', 'timestamp', 'travel_time', 'delay')
-    ordering = ('-timestamp',)
-    readonly_fields = ('timestamp',)
+admin.site.register(Schedule)
+admin.site.register(RouteData)
