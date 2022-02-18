@@ -10,10 +10,16 @@ click-plugins==1.1.1
 click-repl==0.2.0
 Django==3.2.11
 django-celery-beat==2.2.1
+<<<<<<< HEAD
 django-import-export==2.7.1
 django-leaflet==0.28.2
 django-timezone-field==4.2.3
 gdal==3.2.2
+=======
+django-leaflet==0.28.2
+django-timezone-field==4.2.3
+gdal==3.4.1
+>>>>>>> 6ff911f68d5914a005eb8396256a7a6ec0e7ecd2
 gunicorn==20.1.0
 idna==3.3
 kombu==5.2.3
