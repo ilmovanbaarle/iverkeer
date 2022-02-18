@@ -4,7 +4,7 @@
 
 # pull official base image
 #FROM python:3.9.6-alpine as builder
-FROM python:3.9.6-slim as builder
+FROM python:alpine as builder
 
 # set work directory
 WORKDIR /usr/src/app
@@ -14,22 +14,38 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
-RUN apt-get update \
-    && apt-get install -y libpq-dev gcc python3-dev musl-dev \
-    libxslt1-dev zlib1g-dev g++ 
-RUN apt install -y netcat
-RUN apt install -y postgis postgresql-13-postgis-3
+#RUN apk update \
+#    && apk add postgresql-dev gcc python3-dev musl-dev
+RUN apk add musl-dev
 
-# gdal
-# gdal for GeoDjango
-RUN apt-get update && apt-get install -y \
-    binutils \
-    gdal-bin \
-    libgdal-dev \
-    libproj-dev \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-RUN export CPLUS_INCLUDE_PATH=/usr/include/gdal \ 
+#gdal
+RUN apk add --no-cache \
+            --upgrade \
+            --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+        postgresql-client \
+        libpq \
+        nginx
+RUN apk add --no-cache \
+               --upgrade \
+               --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+               --virtual .build-deps \
+        postgresql-dev \
+        zlib-dev jpeg-dev \ 
+        alpine-sdk 
+
+RUN apk add --no-cache \
+               --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+        geos \
+        proj \
+        gdal \
+        gdal-dev \
+        binutils 
+
+RUN ln -sf /usr/lib/libproj.so.15 /usr/lib/libproj.so \
+    && ln -sf /usr/lib/libgdal.so.20 /usr/lib/libgdal.so \
+    && ln -sf /usr/lib/libgeos_c.so.1 /usr/lib/libgeos_c.so 
+
+RUN export CPLUS_INCLUDE_PATH=/usr/include/gdal \
     && export C_INCLUDE_PATH=/usr/include/gdal
 
 # lint
@@ -40,8 +56,8 @@ COPY . .
 
 # install dependencies
 COPY ./requirements.txt .
-#RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt   
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt   --global-option=build_ext --global-option="-I/usr/include/gdal"
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt   
+
 
 
 #########
@@ -49,15 +65,13 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requir
 #########
 
 # pull official base image
-#FROM python:3.9.6-alpine
-FROM python:3.9.6-slim
+FROM python:3.9.6-alpine
 
 # create directory for the app user
 RUN mkdir -p /home/app
 
-# create the app user on alpine
-RUN adduser app 
-
+# create the app user
+RUN addgroup -S app && adduser -S app -G app
 
 # create the appropriate directories
 ENV HOME=/home/app
@@ -68,23 +82,10 @@ RUN mkdir $APP_HOME/mediafiles
 WORKDIR $APP_HOME
 
 # install dependencies
-RUN apt-get update && apt-get install -y postgresql-client netcat
-
-# gdal
-# gdal for GeoDjango
-RUN apt-get update && apt-get install -y \
-    binutils \
-    gdal-bin \
-    libgdal-dev \
-    libproj-dev \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-RUN export CPLUS_INCLUDE_PATH=/usr/include/gdal \ 
-    && export C_INCLUDE_PATH=/usr/include/gdal
-
+RUN apk update && apk add libpq
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
-RUN pip install --no-cache /wheels/* 
+RUN pip install --no-cache /wheels/*
 
 # copy entrypoint.prod.sh
 COPY ./entrypoint.prod.sh .

@@ -8,46 +8,53 @@ import urllib.parse as urlparse
 from django.utils import timezone
 from django.db.models import Count, DateTimeField
 from django.db.models.functions import Trunc
+from django.contrib.gis.db.models.functions import AsGeoJSON
 
+from routemonitor.models import Route, Schedule
 from routemonitor.models import Project, RouteData
+
 
 logger = logging.getLogger(__name__)
 
 def route_update():
-    """ Updates all enabled (time is after start time, and before end time) routes travel information """
-    #routes = Route.objects.filter(enabled=True).values('name', 'routepoints')
     thistime = timezone.now()
     thistime = thistime.strftime('%Y-%m-%d %H:%M%z')
-    logger.warning(f'Dit is de tijd: {thistime}')
+    #logger.warning(f'Dit is de tijd: {thistime}')
 
-    routes = Project.objects.filter(start_date__lte = thistime)
-    routes = routes.filter(end_date__gte = thistime).values('name', 'routepoints','routeType','traffic','travelMode','avoid')
-    logger.warning(f'Dit komt uit het filter: {routes}')
+    # Query eerst alle routes
+    routes = Route.objects.all()
+    routes = Route.objects.filter(
+        schedule__start_date__lte = thistime,
+        schedule__end_date__gte = thistime,
+    )
+    #logger.warning(f'Actieve routes: {routes}')
 
-    logger.info('Starting updating routes')
-    if not routes:
-        logger.info('No routes available for updating; skipping...')
-        return
-    for name in routes:
-        #logger.warning(f'Dit is de description: {name["description"]}')
+    routes = routes.values('name','points','routeType','traffic','travelMode','avoid')
+
+    for route in routes:
         key = "QGd3QJ7EOabPy30MKcNTBVahgVGtLqQk"
-        #start = "51.89236,4.55976"
-        #end = "51.94200,4.48367"
-        routepoints = name["routepoints"]
-        routeType = name["routeType"]             # Fastest route
-        traffic = str(name["traffic"]).lower()    # To include Traffic information
-        travelMode = name["travelMode"]           # Travel by truck
-        avoid = name["avoid"]                     # Avoid unpaved roads
-        #departureTime = "2022-01-25T14:28:00"
-        departureTime = datetime.now().strftime('%Y-%m-%dT%H:%M:00')
+        # Converteer de multipoints naar string en clean ze voor TomTom
+        coordinates = ''
+        for point in route["points"]:
+            tuple = point.coords[::-1]
+            tuple = str(tuple)
+            logger.warning(tuple)
+            tuple = tuple.replace(" ", "").replace("(", "").replace(")", "")
+            coordinates = coordinates + tuple + ':'
+        # Coordinaten staan verkeerdom opgeslagen voor TomTom
+        coordinates = coordinates[:-1]
+        # Haal de overige variabelen op
+        routeType = route["routeType"]             # Fastest route
+        traffic = str(route["traffic"]).lower()    # To include Traffic information
+        travelMode = route["travelMode"]           # Travel by truck
+        avoid = route["avoid"]                     # Avoid unpaved roads
+        departureTime = datetime.now().strftime('%Y-%m-%dT%H:%M:00')    
 
         # Building the request URL
         baseUrl = "https://api.tomtom.com/routing/1/calculateRoute/";
 
         requestParams = (
-            urlparse.quote(routepoints).replace(" ", "")
-            #routepoints
-            #urlparse.quote(start) + ":" + urlparse.quote(end) 
+            urlparse.quote(coordinates)
             + "/json?routeType=" + routeType
             + "&traffic=" + traffic
             + "&travelMode=" + travelMode
@@ -71,13 +78,11 @@ def route_update():
             trafficDelay = routeSummary['trafficDelayInSeconds'] / 60
 
             RouteData.objects.create(
-                project = Project.objects.get(name=name["name"]),
+                route = Route.objects.get(name=route["name"]),
                 travel_time = travelTime,
                 delay = trafficDelay,
                 route_length = lengthInMeters
             )
-            logger.info(f'Route data toegevoegd voor route: {name["name"]}')
-
+            logger.info(f'Route data toegevoegd voor route: {route["name"]}')
         else:
-            logger.warning(f'Tomtom returned an error! Response: {response.status_code}')
-    logger.info('Updated all route information')
+            logger.warning(f'ERROR: {response.status_code}')

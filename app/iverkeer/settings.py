@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
+from glob import glob
 
 from celery.schedules import crontab
 
@@ -40,8 +41,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis', 
     'django_celery_beat',
+    'import_export',
+    'leaflet',
     'routemonitor',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -111,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'nl-nl'
 
 TIME_ZONE = 'Europe/Amsterdam'
 TIME_INPUT_FORMATS = ('%H:%M',)
@@ -183,3 +188,6 @@ CELERY_TASK_ALWAYS_EAGER  = True
 #         'schedule': crontab(minute='*/5'),
 #     },
 # }
+
+# GDAL
+#GDAL_LIBRARY_PATH='local/lib/libgdal.so'
