@@ -4,7 +4,7 @@ services:
   web:
     build: 
       context: ./app
-      dockerfile: Dockerfile.prod.rebuild
+      dockerfile: Dockerfile.prod
     command: gunicorn iverkeer.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./app:/home/app/web #mount the project dir
@@ -13,15 +13,15 @@ services:
     expose:
       - 8000
     env_file:
-      - ./.env.prod
+      - ./stack.env
     depends_on:
       - db
   db:
-    image: postgres:13.0-alpine
+    image: postgis/postgis:13-master
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env.prod.db
+      - ./stack.env
   nginx:
     build: ./nginx
     volumes:
@@ -39,22 +39,22 @@ services:
   celery:
     build: 
       context: ./app
-      dockerfile: Dockerfile.prod.rebuild
+      dockerfile: Dockerfile.prod
     command: celery -A iverkeer worker -l info
     env_file:
       #- ./.env.prod.celery
-      - ./.env.prod
+      - ./stack.env
     depends_on:
       - redis
       - db
   celery-beat:
     build: 
       context: ./app
-      dockerfile: Dockerfile.prod.rebuild
+      dockerfile: Dockerfile.prod
     command: celery -A iverkeer beat -l debug
     env_file:
       #- ./.env.prod.celery
-      - ./.env.prod
+      - ./stack.env
     depends_on: 
       - redis
       - db

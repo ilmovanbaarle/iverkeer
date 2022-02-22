@@ -43,10 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis', 
     'django_celery_beat',
-<<<<<<< HEAD
     'import_export',
-=======
->>>>>>> 6ff911f68d5914a005eb8396256a7a6ec0e7ecd2
     'leaflet',
     'routemonitor',
     'users',
