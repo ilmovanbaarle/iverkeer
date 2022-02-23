@@ -165,9 +165,9 @@ LOGGING = {
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-timezone
 if USE_TZ: CELERY_TIMEZONE = TIME_ZONE
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-broker_url
-CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_BROKER_URL = "redis://redis:6379"
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
-CELERY_RESULT_BACKEND = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379"
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content
 CELERY_ACCEPT_CONTENT = ['json']
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-task_serializer
