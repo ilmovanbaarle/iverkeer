@@ -189,8 +189,5 @@ CELERY_TASK_ALWAYS_EAGER  = True
 #     },
 # }
 
-<<<<<<< HEAD
 # GDAL
 #GDAL_LIBRARY_PATH='local/lib/libgdal.so'
-=======
->>>>>>> 6ff911f68d5914a005eb8396256a7a6ec0e7ecd2
