@@ -1,14 +1,11 @@
 #from django.contrib import admin
 from django.contrib.gis import admin
 from routemonitor.models import Project, RouteData, Route, Schedule
-<<<<<<< HEAD
 
 from import_export import resources
 from import_export.fields import Field
 from import_export.widgets import DateTimeWidget
 from import_export.admin import ImportExportActionModelAdmin
-=======
->>>>>>> 6ff911f68d5914a005eb8396256a7a6ec0e7ecd2
 
 # Register your models here.
 @admin.register(Project)
@@ -29,7 +26,6 @@ class RouteAdmin(admin.OSMGeoAdmin):
         }),
     )
 
-<<<<<<< HEAD
 class RouteDataResource(resources.ModelResource):
     route__project__iv_project = Field(attribute='route__project__iv_project', column_name='IV-project')
     route__project__name = Field(attribute='route__project__name', column_name='Project')
@@ -45,7 +41,3 @@ class RouteDataAdmin(ImportExportActionModelAdmin, admin.ModelAdmin):
     list_display = ('route', 'travel_time', 'delay', 'timestamp')
     list_filter = ('route', 'timestamp')
     resource_class = RouteDataResource
-=======
-admin.site.register(Schedule)
-admin.site.register(RouteData)
->>>>>>> 6ff911f68d5914a005eb8396256a7a6ec0e7ecd2
