@@ -16,12 +16,18 @@ services:
       - ./.env.prod
     depends_on:
       - db
+    labels:
+      - traefik.enable=false
+      
   db:
     image: postgis/postgis:13-master
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.prod.db
+    labels:
+      - traefik.enable=false
+      
   nginx:
     build: ./nginx
     volumes:
@@ -32,9 +38,19 @@ services:
     depends_on:
       - web
       - redis
+    labels:
+      - traefik.http.routers.iverkeer.rule=Host(`iverkeer.muizeluuk.nl`)
+      - traefik.http.routers.iverkeer.tls=true
+      - traefik.http.routers.iverkeer.tls.certresolver=lets-encrypt
+      - traefik.port=1337
+    networks:
+      - internal
+      - web
 
   redis:
     image: redis:alpine
+    labels:
+      - traefik.enable=false
 
   celery:
     build: 
@@ -47,6 +63,9 @@ services:
     depends_on:
       - redis
       - db
+    labels:
+      - traefik.enable=false
+      
   celery-beat:
     build: 
       context: ./app
@@ -59,8 +78,16 @@ services:
       - redis
       - db
       - web
-
+    labels:
+      - traefik.enable=false
+      
 volumes:
   postgres_data:
   static_volume:
   media_volume:
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
