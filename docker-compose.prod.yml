@@ -10,6 +10,8 @@ services:
       - ./app:/home/app/web #mount the project dir
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/mediafiles
+    networks:
+      - internal
     expose:
       - 8000
     env_file:
@@ -25,6 +27,8 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.prod.db
+    networks:
+      - internal
     labels:
       - traefik.enable=false
       
@@ -51,6 +55,8 @@ services:
     image: redis:alpine
     labels:
       - traefik.enable=false
+    networks:
+      - internal
 
   celery:
     build: 
@@ -60,6 +66,8 @@ services:
     env_file:
       #- ./.env.prod.celery
       - ./.env.prod
+    networks:
+      - internal
     depends_on:
       - redis
       - db
@@ -78,6 +86,8 @@ services:
       - redis
       - db
       - web
+    networks:
+      - internal
     labels:
       - traefik.enable=false
       
