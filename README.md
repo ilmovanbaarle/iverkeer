@@ -21,7 +21,7 @@ Django application containing traffic and mobility related analysis tools.
 
 
 ### Security
-- [ ] Implement SSL in Docker
+- [X] Implement SSL in Docker using Traefik
 - [ ] Implement 2FA
 
 ### Frontend
