@@ -3,6 +3,7 @@ import logging
 from unicodedata import name
 
 from django.conf import settings
+import time
 import requests
 import urllib.parse as urlparse
 from django.utils import timezone
@@ -30,11 +31,15 @@ def route_update():
     #logger.warning(f'Actieve routes: {routes}')
 
     routes = routes.values('name','points','routeType','traffic','travelMode','avoid')
+    count = 0
 
     for route in routes:
         key = "QGd3QJ7EOabPy30MKcNTBVahgVGtLqQk"
         # Converteer de multipoints naar string en clean ze voor TomTom
         coordinates = ''
+        count += 1
+        if count % 5 == 0:
+            time.sleep(1)
         for point in route["points"]:
             tuple = point.coords[::-1]
             tuple = str(tuple)
